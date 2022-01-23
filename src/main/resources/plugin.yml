@@ -1,0 +1,6 @@
+commit-hash: ${git.commit.id.describe-short}
+name: ${project.name}
+version: ${project.version}
+description: ${project.description}
+main: gg.castaway.caprotect.CAProtect
+api-version: 1.16
