@@ -4,8 +4,8 @@ import com.google.common.collect.Sets;
 import gg.castaway.caprotect.AbstractModule;
 import gg.castaway.caprotect.CAProtect;
 import org.bukkit.Chunk;
-import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.entity.Boat;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Minecart;
 import org.bukkit.event.EventHandler;
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 
 public class AntiEntityCollision extends AbstractModule {
 
-	private static final int MINECARTS_PER_BLOCK = 10;
+	private static final int ENTITIES_PER_BLOCK = 10;
 	private final Set<World> worlds = Sets.newConcurrentHashSet();
 
 	// Prevents the player from cramming a ton of entities into one space in order to lag with collisions
@@ -42,13 +42,12 @@ public class AntiEntityCollision extends AbstractModule {
 				int destroyed = 0;
 				for (Chunk chunk : chunks) {
 					if (!world.isChunkLoaded(chunk)) continue;
-					List<Entity> entities = getItems(chunk);
-					if (entities.size() <= MINECARTS_PER_BLOCK) {
+					List<Entity> entities = getEntities(chunk);
+					if (entities.size() <= ENTITIES_PER_BLOCK) {
 						continue;
 					}
 					for (Entity entity : entities) {
-						int nearbyMinecartCount = getNearbyMinecartCount(entities, entity.getLocation());
-						if (nearbyMinecartCount > MINECARTS_PER_BLOCK) {
+						if (entities.size() > ENTITIES_PER_BLOCK) {
 							entity.remove();
 							destroyed++;
 						}
@@ -62,38 +61,14 @@ public class AntiEntityCollision extends AbstractModule {
 			});
 		}
 	}
-
 	/***
-	 Returns all entities which are an instance of a minecart in a chunk
+	 Returns all entities which are an instance of a minecart or boat in a chunk
 	 @param chunk minecraft world chunk
-	 @return Entity list of minecarts in that chunk
+	 @return Entity list of minecarts and boats in that chunk
 	 */
-	List<Entity> getItems(final Chunk chunk) {
-		return Arrays.stream(chunk.getEntities()).filter(e -> e instanceof Minecart).collect(Collectors.toList());
+	List<Entity> getEntities(final Chunk chunk) {
+		return Arrays.stream(chunk.getEntities()).filter(e -> e instanceof Minecart || e instanceof Boat).collect(Collectors.toList());
 	}
-
-	private int getNearbyMinecartCount(List<Entity> entities, Location location) {
-		int foundMinecarts = 0;
-		for (Entity entity : entities) {
-
-			double dx = location.getX() - entity.getLocation().getX();
-			double dy = location.getY() - entity.getLocation().getY();
-			double dz = location.getZ() - entity.getLocation().getZ();
-			double ds = dx * dx + dy * dy + dz * dz;
-			if (ds > 1) {
-				continue;
-			}
-
-			// It's a minecart and it's in range
-			foundMinecarts++;
-			if (foundMinecarts > MINECARTS_PER_BLOCK) {
-				return foundMinecarts; // We don't really care at this point, there are already too many so no need to check the rest
-			}
-		}
-
-		return foundMinecarts;
-	}
-
 	@EventHandler
 	public void onWorldLoad(WorldLoadEvent e) {
 		worlds.add(e.getWorld());
