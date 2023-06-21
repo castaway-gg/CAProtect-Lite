@@ -75,9 +75,6 @@ public class AntiEntityCollision extends AbstractModule {
 	private int getNearbyMinecartCount(List<Entity> entities, Location location) {
 		int foundMinecarts = 0;
 		for (Entity entity : entities) {
-//            if (!isValidMinecart(entity)) {
-//                continue;
-//            }
 
 			double dx = location.getX() - entity.getLocation().getX();
 			double dy = location.getY() - entity.getLocation().getY();
